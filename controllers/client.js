@@ -11,7 +11,14 @@ exports.getClients = async (req, res) => {
     const reqQuery = { ...req.query };
 
     // Fields to exclude from query
-    const removeFields = ["select", "sort", "page", "limit", "search"];
+    const removeFields = [
+      "select",
+      "sort",
+      "page",
+      "limit",
+      "search",
+      "searchField",
+    ];
 
     // Remove fields from reqQuery
     removeFields.forEach((param) => delete reqQuery[param]);
@@ -36,17 +43,24 @@ exports.getClients = async (req, res) => {
       query = query.find({ assignedTo: req.user._id });
     }
 
-    // Text search across multiple fields
+    // Text search across multiple fields or only company field
     if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, "i");
-      query = query.find({
-        $or: [
-          { name: searchRegex },
-          { email: searchRegex },
-          { company: searchRegex },
-          { phone: searchRegex },
-        ],
-      });
+
+      if (req.query.searchField === "company") {
+        // Search only by company name
+        query = query.find({ company: searchRegex });
+      } else {
+        // Default search across multiple fields
+        query = query.find({
+          $or: [
+            { name: searchRegex },
+            { email: searchRegex },
+            { company: searchRegex },
+            { phone: searchRegex },
+          ],
+        });
+      }
     }
 
     // Select fields
