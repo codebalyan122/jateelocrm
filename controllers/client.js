@@ -340,6 +340,118 @@ exports.addInteraction = async (req, res) => {
   }
 };
 
+// @desc    Update client interaction
+// @route   PUT /api/clients/:id/interactions/:interactionId
+// @access  Private
+exports.updateInteraction = async (req, res) => {
+  try {
+    const { type, notes } = req.body;
+    const { id, interactionId } = req.params;
+
+    let client = await Client.findById(id);
+
+    if (!client) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
+    }
+
+    // Make sure user is authorized to update this client
+    if (
+      client.assignedTo &&
+      req.user.role !== "admin" &&
+      client.assignedTo.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this client",
+      });
+    }
+
+    // Find the interaction index
+    const interactionIndex = client.interactions.findIndex(
+      (interaction) => interaction._id.toString() === interactionId
+    );
+
+    if (interactionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Interaction not found",
+      });
+    }
+
+    // Update the interaction
+    if (type) client.interactions[interactionIndex].type = type;
+    if (notes) client.interactions[interactionIndex].notes = notes;
+
+    await client.save();
+
+    res.status(200).json({
+      success: true,
+      data: client.interactions[interactionIndex],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+// @desc    Delete client interaction
+// @route   DELETE /api/clients/:id/interactions/:interactionId
+// @access  Private
+exports.deleteInteraction = async (req, res) => {
+  try {
+    const { id, interactionId } = req.params;
+
+    let client = await Client.findById(id);
+
+    if (!client) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
+    }
+
+    // Make sure user is authorized to update this client
+    if (
+      client.assignedTo &&
+      req.user.role !== "admin" &&
+      client.assignedTo.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this client",
+      });
+    }
+
+    // Find the interaction index
+    const interactionIndex = client.interactions.findIndex(
+      (interaction) => interaction._id.toString() === interactionId
+    );
+
+    if (interactionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Interaction not found",
+      });
+    }
+
+    // Remove the interaction
+    client.interactions.splice(interactionIndex, 1);
+
+    await client.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Interaction deleted successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
 // @desc    Add client feedback
 // @route   POST /api/clients/:id/feedback
 // @access  Private
@@ -378,6 +490,118 @@ exports.addFeedback = async (req, res) => {
     res.status(200).json({
       success: true,
       data: client.feedback[0],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+// @desc    Update client feedback
+// @route   PUT /api/clients/:id/feedback/:feedbackId
+// @access  Private
+exports.updateFeedback = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const { id, feedbackId } = req.params;
+
+    let client = await Client.findById(id);
+
+    if (!client) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
+    }
+
+    // Make sure user is authorized to update this client
+    if (
+      client.assignedTo &&
+      req.user.role !== "admin" &&
+      client.assignedTo.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this client",
+      });
+    }
+
+    // Find the feedback index
+    const feedbackIndex = client.feedback.findIndex(
+      (feedback) => feedback._id.toString() === feedbackId
+    );
+
+    if (feedbackIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Feedback not found",
+      });
+    }
+
+    // Update the feedback
+    if (rating) client.feedback[feedbackIndex].rating = rating;
+    if (comment) client.feedback[feedbackIndex].comment = comment;
+
+    await client.save();
+
+    res.status(200).json({
+      success: true,
+      data: client.feedback[feedbackIndex],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+// @desc    Delete client feedback
+// @route   DELETE /api/clients/:id/feedback/:feedbackId
+// @access  Private
+exports.deleteFeedback = async (req, res) => {
+  try {
+    const { id, feedbackId } = req.params;
+
+    let client = await Client.findById(id);
+
+    if (!client) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
+    }
+
+    // Make sure user is authorized to update this client
+    if (
+      client.assignedTo &&
+      req.user.role !== "admin" &&
+      client.assignedTo.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this client",
+      });
+    }
+
+    // Find the feedback index
+    const feedbackIndex = client.feedback.findIndex(
+      (feedback) => feedback._id.toString() === feedbackId
+    );
+
+    if (feedbackIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Feedback not found",
+      });
+    }
+
+    // Remove the feedback
+    client.feedback.splice(feedbackIndex, 1);
+
+    await client.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Feedback deleted successfully",
     });
   } catch (error) {
     res
